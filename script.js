@@ -101,14 +101,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     body: JSON.stringify(dados)
                 });
 
-                const dados = await resposta.json();
+                const respostaData = await resposta.json();
 
                 if (resposta.ok) {
                     alert("Cliente cadastrado com sucesso!");
                     fecharModal();
                     carregarClientes();
                 } else {
-                    alert(dados.erro || "Erro ao cadastrar.");
+                    alert(respostaData.erro || "Erro ao cadastrar.");
                 }
 
             } catch (erro) {

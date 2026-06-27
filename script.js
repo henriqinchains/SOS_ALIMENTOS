@@ -74,8 +74,8 @@ document.addEventListener("DOMContentLoaded", () => {
         formNovoCliente.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            btnSubmit.disabled = true;
-            btnSubmit.innerText = "Enviando...";
+            btnSubmitCliente.disabled = true;
+            btnSubmitCliente.innerText = "Enviando...";
 
             try {
 
@@ -101,8 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Erro ao conectar ao servidor.");
             }
 
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "Cadastrar";
+            btnSubmitCliente.disabled = false;
+            btnSubmitCliente.innerText = "Cadastrar";
         });
     }
 

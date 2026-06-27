@@ -54,8 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
         modalContainer.style.display = "none";
         document.body.style.overflow = "";
 
-        if (formAvaliacao) {
-            formAvaliacao.reset();
+        if (formNovoCliente) {
+            formNovoCliente.reset();
         }
     }
 
@@ -79,11 +79,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
 
-                const formClienteData = new formClienteData(formNovoCliente);
+                const formData = new FormData(formNovoCliente);
 
                 const resposta = await fetch("https://sos-alimentos-servidor.onrender.com/api/clientes", {
                     method: "POST",
-                    body: formClienteData
+                    body: formData
                 });
 
                 const dados = await resposta.json();

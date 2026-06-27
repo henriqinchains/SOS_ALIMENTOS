@@ -14,6 +14,16 @@ const btnFecharModal = document.getElementById("btn-fechar-modal");
 
 let todosClientes = [];
 
+async function gerarID() {
+    try {
+        const resposta = await fetch("https://sos-alimentos-servidor.onrender.com/api/clientes");
+        const clientes = await resposta.json();
+        return (clientes.length + 1).toString();
+    } catch {
+        return Date.now().toString();
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
     atualizarRelogio();
@@ -80,10 +90,15 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
 
                 const formData = new FormData(formNovoCliente);
+                const dados = Object.fromEntries(formData);
+                dados.id = await gerarID();
 
                 const resposta = await fetch("https://sos-alimentos-servidor.onrender.com/api/clientes", {
                     method: "POST",
-                    body: formData
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(dados)
                 });
 
                 const dados = await resposta.json();

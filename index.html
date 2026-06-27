@@ -21,46 +21,72 @@
             </ul>
 
             <div class="sidebar-actions">
-                <button id="btnNovoCliente">+ Cliente</button>
+                <button id="btnAbrirModalCliente">+ Cliente</button>
                 <button id="btnNovaNota">+ Nota</button>
             </div>
         </nav>
     </aside>
 
     <main>
+
+        <div id="modal-container" class="modal-overlay" style="display: none">
+            <div class="modal-card">
+                <button id="btn-fechar-modal" class="close-button">&times;</button>
+                <h2>Registrar Novo Cliente <span>SOS</span></h2>
+                <form id="formNovoCliente">
+                    <div class="grid">
+                        <label>Nome do cliente*<input type="text" name="cliente" id="cliente"
+                                placeholder="Digite o nome do novo cliente" autocomplete="off">
+                        </label>
+                    </div>
+                    <div class="grid">
+                        <label>E-mail<input type="email" name="email"
+                                placeholder="Insira o e-mail do cliente (opcional)" />
+                        </label>
+                    </div>
+                    <div class="grid">
+                        <label>CNPJ<input type="number" name="cnpj" id="cnpj"
+                                placeholder="Digite o CNPJ do cliete (apenas números)" />
+                        </label>
+                    </div>
+                    <div class="grid grid-three-fourths">
+                        <label><span>Endereço*<input id="adress" name="adress"
+                                    placeholder="Insira o endereço do cliente (obrigatório)" required></span></label>
+                        <label>Complemento<input id="complemento" name="complemento" type="text"></label>
+                    </div>
+
+
+                </form>
+                <button id="btnSubmitCliente" name="btnSubmitCliente">ENVIAR</button>
+            </div>
+        </div>
+
         <section id="inicial">
             <div class="inicial-menu" id="inicial-menu">
                 <h1>Bem-vindo 👋</h1>
-
-                <div class="info-boxes"
-                    style="display: flex; gap: 1.25rem; flex-wrap: wrap; justify-content: center; width: 100%;"></div>
-                <div class="info-box">
-                    <span>📅 Data completa:</span>
-                    <strong id="dataAtual">--</strong>
-                </div>
-
-                <div class="info-box">
-                    <span>🕒 Horário atual:</span>
-                    <strong id="horaAtual">--:--:--</strong>
+                <div class="info-boxes">
+                    <div class="info-box">
+                        <span>📅 Data de hoje</span>
+                        <strong id="dataAtual">--</strong>
+                    </div>
+                    <div class="info-box">
+                        <span>🕒 Horário atual</span>
+                        <strong id="horaAtual">--:--:--</strong>
+                    </div>
                 </div>
             </div>
-
             <div id="inicialConteudo"></div>
         </section>
 
-        <section id="clientes">
-            <div class="clientes-menu" id="clientes-menu">
-                <button id="btnPesquisarCliente">PESQUISAR CLIENTES</button>
-                <button id="btnCadastrarCadastrar">CADASTRAR CLIENTES</button>
-            </div>
+        <section id="clientes" hidden>
             <div id="clientesConteudo"></div>
         </section>
 
-        <section id="notas">
+        <section id="notas" hidden>
             <button></button>
         </section>
 
-        <section id="lixeira">
+        <section id="lixeira" hidden>
             <button></button>
         </section>
     </main>

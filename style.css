@@ -11,28 +11,37 @@ body {
 }
 
 main {
+    margin-left: 260px;
     flex: 1;
     overflow-y: auto;
-    background: #f3f4f6;
+    background: #10151d;
 }
 
+/* ───── single page ───── */
+section {
+    display: none;
+}
+
+section:not([hidden]) {
+    display: block;
+}
+
+#inicial:not([hidden]) {
+    display: flex;
+}
+
+/* ───── sidebar ───── */
 .navbar {
-    width: 230px;
+    width: 260px;
     min-height: 100vh;
-
     background: #1f2937;
     color: white;
     padding: 20px;
-}
-
-.right-navbar {
-    width: 230px;
-    min-height: 100vh;
-
-    margin-left: auto;
-    background: #1f2937;
-    color: white;
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 .navbar h1 {
@@ -66,6 +75,119 @@ main {
     padding-left: 8px;
 }
 
+.sidebar-actions {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-actions button {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bolder;
+    background: #374151;
+    color: white;
+    transition: 0.2s;
+}
+
+.sidebar-actions button:hover {
+    background: #4b5563;
+}
+
+/* ───── section inicial ───── */
+#inicial {
+    min-height: 100vh;
+    width: 100%;
+    background: #10151d;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+}
+
+.inicial-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
+}
+
+.inicial-menu h1 {
+    font-size: 42px;
+    font-weight: 500;
+    color: #f9fafb;
+    text-align: center;
+    letter-spacing: -0.5px;
+}
+
+.info-boxes {
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+
+.info-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: #1f2937;
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    min-width: 240px;
+    flex: 1;
+    max-width: 340px;
+}
+
+.info-box span {
+    font-size: 13px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.info-box strong {
+    font-size: 28px;
+    font-weight: 500;
+    color: #f9fafb;
+    font-family: monospace;
+    letter-spacing: -0.5px;
+}
+
+#inicialConteudo {
+    width: 100%;
+    margin-top: 2rem;
+}
+
+/* ───── section clientes ───── */
+.clientes-menu {
+    display: flex;
+    gap: 1rem;
+    padding: 2rem;
+}
+
+.clientes-menu button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    background: #374151;
+    color: white;
+    transition: 0.2s;
+}
+
+.clientes-menu button:hover {
+    background: #4b5563;
+}
 
 #clientesConteudo {
     display: grid;
@@ -75,16 +197,16 @@ main {
 }
 
 .cliente-card {
-    background: #ffffff;
+    background: #1f2937;
     border-radius: 12px;
     padding: 15px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     transition: 0.2s;
 }
 
 .cliente-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 .cliente-topo {
@@ -96,26 +218,27 @@ main {
 
 .cliente-topo h3 {
     font-size: 16px;
+    color: #f9fafb;
     margin: 0;
 }
 
 .cliente-id {
     font-size: 12px;
-    background: #e5e7eb;
+    background: #374151;
+    color: #9ca3af;
     padding: 3px 8px;
     border-radius: 6px;
 }
 
-.cliente-rua {
+.cliente-rua,
+.cliente-bairro {
     font-size: 13px;
-    color: #555;
+    color: #9ca3af;
     margin-bottom: 5px;
     margin-top: 5px;
 }
 
 .cliente-bairro {
-    font-size: 13px;
-    color: #555;
     margin-bottom: 12px;
 }
 
@@ -150,4 +273,240 @@ main {
 
 .btn-editar:hover {
     background: #059669;
+}
+
+.clientes-toolbar {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    padding: 10px 20px;
+}
+
+.clientes-toolbar select {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: none;
+    background: #374151;
+    color: white;
+    cursor: pointer;
+}
+
+#carregarClientes {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: #374151;
+    color: white;
+    cursor: pointer;
+    transition: .2s;
+}
+
+#carregarClientes:hover {
+    background: #4b5563;
+}
+
+/* MODAL CADASTRO */
+/* Overlay */
+#modal-container {
+    display: none;
+    position: fixed;
+
+    top: 0;
+    left: 260px;
+    /* largura da navbar */
+    right: 0;
+    bottom: 0;
+
+    background: rgba(0, 0, 0, .45);
+    backdrop-filter: blur(3px);
+
+    justify-content: center;
+    align-items: center;
+
+    z-index: 999;
+}
+
+/* Caixa do modal */
+.modal-card {
+    width: min(430px, 90%);
+
+    height: auto;
+    max-height: 90vh;
+
+    background: #1f2937;
+    border-radius: 14px;
+
+    padding: 28px;
+
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .45);
+
+    overflow-y: auto;
+
+    position: relative;
+}
+
+/* Título */
+.modal-card h2 {
+    color: #fff;
+    margin-bottom: 25px;
+    font-size: 26px;
+}
+
+.modal-card h2 span {
+    color: #60a5fa;
+}
+
+/* Grid */
+.grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.grid-two {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-three-fourths {
+    grid-template-columns: 3fr 1fr;
+}
+
+/* Labels */
+.modal-card label,
+.modal-card legend {
+    color: #d1d5db;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Campos */
+.modal-card input,
+.modal-card textarea,
+.modal-card select {
+    width: 100%;
+
+    margin-top: 6px;
+
+    padding: 11px 12px;
+
+    border: 1px solid #374151;
+    border-radius: 8px;
+
+    background: #111827;
+    color: white;
+
+    outline: none;
+
+    transition: .2s;
+}
+
+.modal-card input:focus,
+.modal-card textarea:focus,
+.modal-card select:focus {
+    border-color: #3b82f6;
+}
+
+/* Textarea */
+.modal-card textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Radio */
+.radio-group {
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 12px;
+
+    display: flex;
+    gap: 20px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Rodapé */
+.footer {
+    margin-top: 25px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hint {
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+/* Botão */
+.button {
+    background: #2563eb;
+    color: white;
+
+    border: none;
+    border-radius: 8px;
+
+    padding: 12px 22px;
+
+    cursor: pointer;
+
+    font-weight: bold;
+
+    transition: .2s;
+}
+
+.button:hover {
+    background: #1d4ed8;
+}
+
+/* Fechar */
+.close-button {
+    position: absolute;
+
+    top: 16px;
+    right: 16px;
+
+    width: 36px;
+    height: 36px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: transparent;
+    color: #9ca3af;
+
+    font-size: 28px;
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.close-button:hover {
+    background: #374151;
+    color: white;
+}
+
+@media (max-width: 768px) {
+
+    #modal-container {
+        left: 0;
+    }
+
+    .grid-two {
+        grid-template-columns: 1fr;
+    }
+
+    .footer {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .button {
+        width: 100%;
+    }
 }

@@ -466,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <span>${cliente.rua ? `${cliente.rua}` : 'Rua não cadastrada'}</span>
                             <span>${cliente.email ? `${cliente.email}` : 'E-mail não informado'}</span>
                             <span>${cliente.bairro ? cliente.bairro : 'Bairro não cadastrado'}</span>
-                            <span>${cliente.quantidadeNotas ? cliente.quantidadeNotas : 'Cliente sem notas no momento.'} nota(s)</span>
+                            <span>${cliente.quantidadeNotas ? cliente.quantidadeNotas + 'nota(s)' : 'Cliente sem notas no momento.'}</span>
                         </div>
                     </div>
                     <span class="seta-status">▼</span>

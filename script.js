@@ -394,11 +394,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const cardCliente = document.createElement("div");
             cardCliente.classList.add("cliente-card");
             cardCliente.innerHTML = `
-                <div class="cliente-topo">
-                    <h3>${c.cliente}</h3>
-                    <span class="cliente-id">ID: ${c.id ?? "-"}</span>
+            <div class="cliente-topo">
+            <h3>${c.cliente}</h3>
+            <span class="cliente-id">ID: ${c.id ?? "-"}</span>
                 </div>
-                <p class="cliente-rua">${c.rua || "Rua não cadastrada"}</p>
+                <p class="cliente-rua">${c.endereco || "Rua não cadastrada"}</p>
                 <p class="cliente-bairro">${c.bairro || "Bairro não cadastrado"}</p>
                 <div class="cliente-acoes">
                     <button class="btn-ver">Ver</button>
@@ -419,6 +419,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const notasToolbar = document.getElementById("notasToolbar");
         if (!notasConteudo) return;
 
+        const respostaNotas = await fetch(`https://sos-alimentos-servidor.onrender.com/api/notas?_=${Date.now()}`);
+        const notas = await respostaNotas.json();
+
+        const quantidadeNotas = {};
+
+        notas.forEach(nota => {
+            const id = String(nota.idCliente || nota.clienteId);
+
+            if (!quantidadeNotas[id]) {
+                quantidadeNotas[id] = 0;
+            }
+
+            quantidadeNotas[id]++;
+        });
+
         notasConteudo.innerHTML = "<p style='color:#9ca3af; padding:20px;'>Selecione um cliente para ver as notas.</p>";
         notasToolbar.innerHTML = "";
 
@@ -428,6 +443,11 @@ document.addEventListener("DOMContentLoaded", () => {
         notasToolbar.appendChild(toolbarNotas);
 
         const clientesOrdenados = [...todosClientes].sort((a, b) => a.cliente.localeCompare(b.cliente));
+
+
+        clientesOrdenados.forEach(cliente => {
+            cliente.quantidadeNotas = quantidadeNotas[String(cliente.id)] || 0;
+        });
 
         const gruposAlfabeticos = {};
         clientesOrdenados.forEach(c => {
@@ -452,7 +472,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const gridClientesLetra = document.createElement("div");
             gridClientesLetra.classList.add("grid-clientes-nota");
-
             gruposAlfabeticos[letra].forEach(cliente => {
                 const cardLinkCliente = document.createElement("div");
                 cardLinkCliente.classList.add("cliente-nota-gatilho");
@@ -461,12 +480,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="indicador-info">
                             <strong>${cliente.cliente}</strong>
                             <span>ID: ${cliente.id}</span>
+                            <span>${cliente.quantidadeNotas > 0 ? `${cliente.quantidadeNotas} nota(s)` : "Cliente sem notas no momento."}</span>
                         </div>
                         <div class="cliente-info-grid">
-                            <span>${cliente.rua ? `${cliente.rua}` : 'Rua não cadastrada'}</span>
+                        <span>${cliente.endereco ? `${cliente.endereco}` : 'Endereço não cadastrado'}</span>
+                        <span>${cliente.bairro ? cliente.bairro : 'Bairro não cadastrado'}</span>
                             <span>${cliente.email ? `${cliente.email}` : 'E-mail não informado'}</span>
-                            <span>${cliente.bairro ? cliente.bairro : 'Bairro não cadastrado'}</span>
-                            <span>${cliente.quantidadeNotas ? cliente.quantidadeNotas + 'nota(s)' : 'Cliente sem notas no momento.'}</span>
+                            
                         </div>
                     </div>
                     <span class="seta-status">▼</span>

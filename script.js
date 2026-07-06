@@ -192,22 +192,10 @@ document.addEventListener("DOMContentLoaded", () => {
             btnSubmitNota.innerText = "Enviando...";
 
             try {
-                // CORREÇÃO 2: Adicionado dataEmissao e numeroNota ao payload
-                const payload = {
-                    idCliente: String(dados.idCliente),
-                    cliente: dados.cliente,
-                    email: dados.email || null,
-                    valor: dados.valor,
-                    numeroNota: dados.numeroNota,
-                    dataEmissao: dados.dataEmissao
-                };
 
                 const resposta = await fetch("https://sos-alimentos-servidor.onrender.com/api/notas", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
+                    body: formData
                 });
 
                 const respostaData = await resposta.json();

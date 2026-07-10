@@ -31,16 +31,6 @@ const listaClientes = document.getElementById("listaClientes");
 
 let todosClientes = [];
 
-async function gerarID() {
-    try {
-        const resposta = await fetch("https://sos-alimentos-servidor.onrender.com/api/clientes");
-        const clientes = await resposta.json();
-        return (clientes.length + 1).toString();
-    } catch {
-        return Date.now().toString();
-    }
-}
-
 document.addEventListener("DOMContentLoaded", () => {
 
     if (btnAbrirModalNota) {
@@ -143,7 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const formData = new FormData(formNovoCliente);
                 const dados = Object.fromEntries(formData);
-                dados.id = await gerarID();
 
                 const resposta = await fetch("https://sos-alimentos-servidor.onrender.com/api/clientes", {
                     method: "POST",
@@ -263,8 +252,8 @@ document.addEventListener("DOMContentLoaded", () => {
             inputEmailNota.setAttribute("readonly", true);
         }
 
-        inputIdCliente.value = cliente.id;
-        await buscarNumeroNota(cliente.id);
+        inputIdCliente.value = cliente._id;
+        await buscarNumeroNota(cliente._id);
     }
 
     function mostrarSugestoes(texto) {
@@ -342,6 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <option value="comEmail">Com email</option>
                 <option value="semEmail">Sem email</option>
             </select>
+            
             <button id="carregarClientes">🔄 Atualizar</button>
         `;
         clientesConteudo.appendChild(toolbar);
@@ -413,7 +403,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const quantidadeNotas = {};
 
         notas.forEach(nota => {
-            const id = String(nota.idCliente || nota.clienteId);
+            const id = String(nota.idCliente || nota.clienteId || nota.cliente);
 
             if (!quantidadeNotas[id]) {
                 quantidadeNotas[id] = 0;
@@ -434,7 +424,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         clientesOrdenados.forEach(cliente => {
-            cliente.quantidadeNotas = quantidadeNotas[String(cliente.id)] || 0;
+            cliente.quantidadeNotas = quantidadeNotas[String(cliente._id)] || 0;
         });
 
         const gruposAlfabeticos = {};
@@ -467,8 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="cliente-nota-card-content">
                         <div class="indicador-info">
                             <strong>${cliente.cliente}</strong>
-                            <span>ID: ${cliente.id}</span>
-                            <span>${cliente.quantidadeNotas > 0 ? `${cliente.quantidadeNotas} nota(s)` : "Cliente sem notas no momento."}</span>
+                            <span class="quantidade-notas" id="quantidade-notas">${cliente.quantidadeNotas > 0 ? `${cliente.quantidadeNotas} nota(s)` : "Cliente sem notas no momento."}</span>
                         </div>
                         <div class="cliente-info-grid">
                         <span>${cliente.endereco ? `${cliente.endereco}` : 'Endereço não cadastrado'}</span>
@@ -516,22 +505,24 @@ document.addEventListener("DOMContentLoaded", () => {
         notasConteudo.appendChild(containerGeral);
     }
 
+    //agrupamento
+    let modoSelecao = false;
+    const notasSelecionadas = new Set();
+
     async function carregarNotasDoCliente(clienteAlvo, containerAlvo) {
         try {
             const resposta = await fetch(`https://sos-alimentos-servidor.onrender.com/api/notas?_=${Date.now()}`);
             const notas = await resposta.json();
 
-            // DIAGNÓSTICO: Aperte F12 no navegador, vá em 'Console' e veja isso caso falhe:
             console.log("--- DEBUG DE NOTAS ---");
-            console.log("Buscando notas para:", clienteAlvo.cliente, "| ID:", clienteAlvo.id);
+            console.log("Buscando notas para:", clienteAlvo.cliente, "| ID:", clienteAlvo._id);
             console.log("Notas retornadas pelo servidor:", notas);
 
-            // CORREÇÃO: Filtro blindado! Procura pelo ID. Se o ID falhar, procura pelo NOME exato.
             const notasDoCliente = notas.filter(n => {
-                const bateuPorID = String(n.idCliente) === String(clienteAlvo.id) || String(n.clienteId) === String(clienteAlvo.id);
+
                 const bateuPorNome = n.cliente && n.cliente.toLowerCase().trim() === clienteAlvo.cliente.toLowerCase().trim();
 
-                return bateuPorID || bateuPorNome;
+                return bateuPorNome;
             });
 
             containerAlvo.innerHTML = "";
@@ -559,13 +550,40 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 cardNotaItem.innerHTML = `
+                
                     <div class="cliente-topo">
                         <h3>Nota Nº ${nota.numeroNota || index + 1}</h3>
                         <span class="nota-tag-valor">${valorFormatado}</span>
                     </div>
                     <p class="cliente-rua"><strong>Emissão:</strong> ${dataFormatada}</p>
                     <p class="cliente-bairro"><strong>E-mail:</strong> ${nota.email || 'Não informado'}</p>
+                    <p class="cliente-rua"><strong>Entrega:</strong> ${nota.entregador || 'Não informado'}</p>
+                    <div class="nota-image">
+                        <img src="${nota.img}" alt="Foto da nota" onclick="window.open('${nota.img}', '_blank')">
+                    </div>
+                    <button class="btn-marcar-pago">Marcar como Pago</button>
                 `;
+
+                const btnPago = cardNotaItem.querySelector(".btn-marcar-pago");
+                btnPago.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    marcarComoPago(nota);
+                });
+
+                cardNotaItem.addEventListener("click", () => {
+                    if (!modoSelecao) return;
+
+                    if (notasSelecionadas.has(nota._id)) {
+                        notasSelecionadas.delete(nota._id);
+                        cardNotaItem.classList.remove("selecionada");
+                    } else {
+                        notasSelecionadas.add(nota._id);
+                        cardNotaItem.classList.add("selecionada");
+                    }
+
+                    atualizarBarra();
+                });
+
                 containerAlvo.appendChild(cardNotaItem);
             });
 
@@ -573,6 +591,40 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error(erro);
             containerAlvo.innerHTML = "<p class='erro-txt'>Erro ao carregar notas fiscais do servidor.</p>";
         }
+
+
+
+        containerAlvo.appendChild(cardNotaItem);
+    }
+
+    function marcarComoPago(nota) {
+
+        if (nota.pago) {
+            alert("Esta nota já está paga.");
+            return;
+        }
+
+        if (!confirm("Tem certeza que deseja marcar esta nota como PAGA?")) {
+            return;
+        }
+
+        fetch(`https://sos-alimentos-servidor.onrender.com/api/notas/${nota._id}/pago`, {
+            method: "PATCH"
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Erro ao marcar nota como paga");
+                }
+                return response.json();
+            })
+            .then(() => {
+                alert("Nota marcada como paga com sucesso!");
+                location.reload();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Erro ao marcar nota como paga.");
+            });
     }
 
     // Relógio da página inicial

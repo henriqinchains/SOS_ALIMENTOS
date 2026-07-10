@@ -561,10 +561,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="nota-image">
                         <img src="${nota.img}" alt="Foto da nota" onclick="window.open('${nota.img}', '_blank')">
                     </div>
-                    <button class="btn-marcar-pago" onclick="marcarComoPago('${nota._id}', ${nota.pago})">${nota.pago ? "Desmarcar como Pago" : "Marcar como Pago"}</button>
+                    <button class="btn-marcar-pago">${nota.pago ? "Desmarcar como Pago" : "Marcar como Pago"}</button>
                 `;
 
                 const btnPago = cardNotaItem.querySelector(".btn-marcar-pago");
+
                 btnPago.addEventListener("click", (e) => {
                     e.stopPropagation();
                     marcarComoPago(nota._id, nota.pago);
@@ -592,14 +593,9 @@ document.addEventListener("DOMContentLoaded", () => {
             containerAlvo.innerHTML = "<p class='erro-txt'>Erro ao carregar notas fiscais do servidor.</p>";
         }
 
-
-
-        containerAlvo.appendChild(cardNotaItem);
     }
 
-    function marcarComoPago(idNota, pago) {
-
-        window.marcarComoPago = marcarComoPago;
+    window.marcarComoPago = function marcarComoPago(idNota, pago) {
 
         if (pago) {
             if (!confirm("Esta nota já está marcada como PAGA. Deseja desmarcá-la?")) {
@@ -629,6 +625,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Erro ao atualizar nota.");
             });
     }
+
 
     // Relógio da página inicial
     function atualizarRelogio() {

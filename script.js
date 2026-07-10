@@ -599,6 +599,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function marcarComoPago(idNota, pago) {
 
+        window.marcarComoPago = marcarComoPago;
+
         if (pago) {
             if (!confirm("Esta nota já está marcada como PAGA. Deseja desmarcá-la?")) {
                 return;
@@ -610,7 +612,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         fetch(`https://sos-alimentos-servidor.onrender.com/api/notas/${idNota}/pago`, {
-            method: "PATCH"
+            method: "PUT",
         })
             .then(response => {
                 if (!response.ok) {

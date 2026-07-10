@@ -595,35 +595,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-    window.marcarComoPago = function marcarComoPago(idNota, pago) {
+    function marcarComoPago(idNota, pago) {
 
-        if (pago) {
-            if (!confirm("Esta nota já está marcada como PAGA. Deseja desmarcá-la?")) {
-                return;
-            }
-        } else {
-            if (!confirm("Tem certeza que deseja marcar esta nota como PAGA?")) {
-                return;
-            }
-        }
+        const mensagem = pago
+            ? "Esta nota já está paga. Deseja desmarcá-la?"
+            : "Tem certeza que deseja marcar esta nota como paga?";
+
+        if (!confirm(mensagem)) return;
 
         fetch(`https://sos-alimentos-servidor.onrender.com/api/notas/${idNota}/pago`, {
-            method: "PUT",
+            method: "PUT"
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Erro ao atualizar nota");
-                }
-                return response.json();
+            .then(r => {
+                if (!r.ok) throw new Error();
+                return r.json();
             })
             .then(() => {
-                alert(pago ? "Nota desmarcada como paga!" : "Nota marcada como paga!");
-                location.reload();
+                alert("Status atualizado!");
+                renderAbasNotas();
             })
-            .catch(err => {
-                console.error(err);
-                alert("Erro ao atualizar nota.");
-            });
+            .catch(console.error);
     }
 
 

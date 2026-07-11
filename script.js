@@ -31,6 +31,13 @@ const listaClientes = document.getElementById("listaClientes");
 
 let todosClientes = [];
 
+// AGRUPAMENTO / SELEÇÃO DE NOTAS
+// (declarado uma única vez, fora de carregarNotasDoCliente)
+let modoSelecao = false;
+const notasSelecionadas = new Map(); // nota._id -> { nota, elemento }
+let containerSelecaoAtivo = null;
+let barraSelecao = null;
+
 document.addEventListener("DOMContentLoaded", () => {
 
     if (btnAbrirModalNota) {
@@ -505,12 +512,7 @@ document.addEventListener("DOMContentLoaded", () => {
         notasConteudo.appendChild(containerGeral);
     }
 
-    // AGRUPAMENTO / SELEÇÃO DE NOTAS
-    // (declarado uma única vez, fora de carregarNotasDoCliente)
-    let modoSelecao = false;
-    const notasSelecionadas = new Map(); // nota._id -> { nota, elemento }
-    let containerSelecaoAtivo = null;
-    let barraSelecao = null;
+
 
     function criarBarraSelecao(containerAlvo) {
         if (barraSelecao) barraSelecao.remove();

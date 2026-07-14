@@ -36,6 +36,7 @@ let todosClientes = [];
 let modoSelecao = false;
 const notasSelecionadas = new Map(); // nota._id -> { nota, elemento }
 let containerSelecaoAtivo = null;
+let clienteSelecaoAtivo = null;
 let barraSelecao = null;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -494,6 +495,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         containerNotasCliente.style.display = "none";
                         cardLinkCliente.querySelector(".seta-status").textContent = "▼";
                         cardLinkCliente.classList.remove("aberto");
+
+                        // Se o modo de seleção estava ativo neste container, cancela também,
+                        // senão a barra e a seleção continuam "vivas" mesmo com o container escondido
+                        if (containerSelecaoAtivo === containerNotasCliente) {
+                            cancelarModoSelecao();
+                        }
                     }
                 });
 
@@ -513,7 +520,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-
+    // ==========================================
+    // BARRA DE SELEÇÃO (modo agrupar)
+    // ==========================================
     function criarBarraSelecao(containerAlvo) {
         if (barraSelecao) barraSelecao.remove();
 
@@ -557,44 +566,106 @@ document.addEventListener("DOMContentLoaded", () => {
             barraSelecao = null;
         }
         containerSelecaoAtivo = null;
+        clienteSelecaoAtivo = null;
     }
 
-    function criarGrupoDeNotas(containerAlvo) {
+    // Cria o grupo de fato no backend (persistido) e recarrega a listagem do cliente
+    async function criarGrupoDeNotas(containerAlvo) {
         if (notasSelecionadas.size === 0) return;
+        if (!clienteSelecaoAtivo) return;
 
-        const nomeGrupo = prompt("Nome do grupo:", "Novo grupo");
-        if (nomeGrupo === null) return; // cancelou o prompt
+        const observacao = prompt("Observação do grupo (opcional):", "");
+        if (observacao === null) return; // usuário cancelou o prompt
 
+        const notasId = Array.from(notasSelecionadas.keys());
+        const clienteAlvo = clienteSelecaoAtivo;
+
+        try {
+            const resposta = await fetch("https://sos-alimentos-servidor.onrender.com/api/grupos", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    observacao,
+                    idCliente: clienteAlvo._id,
+                    notasId
+                })
+            });
+
+            if (!resposta.ok) throw new Error();
+
+            cancelarModoSelecao();
+
+            // Recarrega as notas do cliente já com o grupo novo aplicado
+            await carregarNotasDoCliente(clienteAlvo, containerAlvo);
+
+        } catch (erro) {
+            console.error(erro);
+            alert("Erro ao criar grupo de notas.");
+        }
+    }
+
+    // Monta o card visual de um grupo já existente (vindo do backend)
+    // Retorna { cardGrupo, corpoGrupo } para o chamador poder inserir os cards de nota dentro
+    function criarCardGrupo(grupo, containerAlvo, clienteAlvo) {
         const cardGrupo = document.createElement("div");
         cardGrupo.classList.add("grupo-notas-card");
+        cardGrupo.dataset.grupoId = grupo._id;
 
         const cabecalhoGrupo = document.createElement("div");
         cabecalhoGrupo.classList.add("grupo-notas-cabecalho");
         cabecalhoGrupo.innerHTML = `
-            <h3>${nomeGrupo || "Grupo de notas"}</h3>
-            <span class="seta-status-grupo">▲</span>
+            <div class="grupo-notas-titulo">
+                <h3>${grupo.observacao ? grupo.observacao : "Grupo de Notas"}</h3>
+            </div>
+            <div class="grupo-notas-acoes">
+                <button class="btn-excluir-grupo" title="Excluir grupo">🗑️</button>
+                <span class="seta-status-grupo">▲</span>
+            </div>
         `;
 
         const corpoGrupo = document.createElement("div");
         corpoGrupo.classList.add("grupo-notas-corpo");
 
-        notasSelecionadas.forEach(({ elemento }) => {
-            elemento.classList.remove("selecionada");
-            corpoGrupo.appendChild(elemento); // move o card (não duplica) pro grupo
+        cabecalhoGrupo.querySelector(".grupo-notas-titulo").addEventListener("click", () => {
+            alternarGrupo();
+        });
+        cabecalhoGrupo.querySelector(".seta-status-grupo").addEventListener("click", () => {
+            alternarGrupo();
         });
 
-        cabecalhoGrupo.addEventListener("click", () => {
+        function alternarGrupo() {
             const estaAberto = corpoGrupo.style.display !== "none";
             corpoGrupo.style.display = estaAberto ? "none" : "grid";
             cabecalhoGrupo.querySelector(".seta-status-grupo").textContent = estaAberto ? "▼" : "▲";
+        }
+
+        cabecalhoGrupo.querySelector(".btn-excluir-grupo").addEventListener("click", async (e) => {
+            e.stopPropagation();
+
+            const confirmar = confirm("Excluir este grupo? As notas dentro dele também serão marcadas como excluídas.");
+            if (!confirmar) return;
+
+            try {
+                const resposta = await fetch(`https://sos-alimentos-servidor.onrender.com/api/grupos/${grupo._id}`, {
+                    method: "DELETE"
+                });
+
+                if (!resposta.ok) throw new Error();
+
+                // Recarrega a listagem: o grupo some e as notas dele também,
+                // já que ambos foram marcados como excluídos no backend
+                await carregarNotasDoCliente(clienteAlvo, containerAlvo);
+
+            } catch (erro) {
+                console.error(erro);
+                alert("Erro ao excluir grupo.");
+            }
         });
 
         cardGrupo.appendChild(cabecalhoGrupo);
         cardGrupo.appendChild(corpoGrupo);
 
-        containerAlvo.prepend(cardGrupo);
-
-        cancelarModoSelecao();
+        return { cardGrupo, corpoGrupo };
     }
 
     async function carregarNotasDoCliente(clienteAlvo, containerAlvo) {
@@ -632,24 +703,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
             }
 
-            const resposta = await fetch(`https://sos-alimentos-servidor.onrender.com/api/notas?_=${Date.now()}`);
-            const notas = await resposta.json();
-
-            const notasDoCliente = notas.filter(n => {
-
-                const bateuPorNome = n.cliente && n.cliente.toLowerCase().trim() === clienteAlvo.cliente.toLowerCase().trim();
-
-                return bateuPorNome;
-            });
-
-            containerAlvo.innerHTML = "";
-
-            if (notasDoCliente.length === 0) {
-                containerAlvo.innerHTML = "<p class='sem-notas-txt'>Nenhuma nota fiscal registrada para este cliente.</p>";
-                return;
-            }
-
-            notasDoCliente.forEach((nota, index) => {
+            // Cria o card individual de uma nota (com todos os listeners já ligados)
+            function criarCardNotaItem(nota, index) {
                 const cardNotaItem = document.createElement("div");
                 cardNotaItem.classList.add("cliente-card", "nota-fiscal-card-ajuste");
                 cardNotaItem.classList.toggle("nota-paga", nota.pago);
@@ -696,10 +751,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 cardNotaItem.addEventListener("click", () => {
-                    console.log("cliquei no card", nota._id, modoSelecao);
                     if (!modoSelecao) {
                         modoSelecao = true;
                         containerSelecaoAtivo = containerAlvo;
+                        clienteSelecaoAtivo = clienteAlvo;
                         criarBarraSelecao(containerAlvo);
                     }
 
@@ -720,7 +775,63 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 });
 
-                containerAlvo.appendChild(cardNotaItem);
+                return cardNotaItem;
+            }
+
+            const [respostaNotas, respostaGrupos] = await Promise.all([
+                fetch(`https://sos-alimentos-servidor.onrender.com/api/notas?_=${Date.now()}`),
+                fetch(`https://sos-alimentos-servidor.onrender.com/api/grupos?idCliente=${clienteAlvo._id}&_=${Date.now()}`)
+            ]);
+
+            const notas = await respostaNotas.json();
+            const grupos = respostaGrupos.ok ? await respostaGrupos.json() : [];
+
+            const notasDoCliente = notas.filter(n => {
+
+                const bateuPorNome = n.cliente && n.cliente.toLowerCase().trim() === clienteAlvo.cliente.toLowerCase().trim();
+
+                return bateuPorNome;
+            });
+
+            containerAlvo.innerHTML = "";
+
+            if (notasDoCliente.length === 0) {
+                containerAlvo.innerHTML = "<p class='sem-notas-txt'>Nenhuma nota fiscal registrada para este cliente.</p>";
+                return;
+            }
+
+            // Cria todos os cards de nota primeiro, indexados por id
+            const notaCardMap = new Map();
+            notasDoCliente.forEach((nota, index) => {
+                const cardNotaItem = criarCardNotaItem(nota, index);
+                notaCardMap.set(String(nota._id), cardNotaItem);
+            });
+
+            // Marca quais notas já pertencem a algum grupo
+            const notasAgrupadasIds = new Set();
+            grupos.forEach(grupo => {
+                (grupo.notasId || []).forEach(id => notasAgrupadasIds.add(String(id)));
+            });
+
+            // Renderiza os grupos primeiro, movendo os cards de nota correspondentes pra dentro
+            grupos.forEach(grupo => {
+                const { cardGrupo, corpoGrupo } = criarCardGrupo(grupo, containerAlvo, clienteAlvo);
+
+                (grupo.notasId || []).forEach(id => {
+                    const card = notaCardMap.get(String(id));
+                    if (card) corpoGrupo.appendChild(card);
+                });
+
+                containerAlvo.appendChild(cardGrupo);
+            });
+
+            // Renderiza as notas que não pertencem a nenhum grupo, soltas
+            notasDoCliente.forEach(nota => {
+                const idStr = String(nota._id);
+                if (!notasAgrupadasIds.has(idStr)) {
+                    const card = notaCardMap.get(idStr);
+                    if (card) containerAlvo.appendChild(card);
+                }
             });
 
         } catch (erro) {

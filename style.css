@@ -1,3 +1,7 @@
+/* ═══════════════════════════════════════ */
+/* ───── RESET E BASE ───── */
+/* ═══════════════════════════════════════ */
+
 * {
     margin: 0;
     padding: 0;
@@ -17,7 +21,7 @@ main {
     background: #10151d;
 }
 
-/* ───── single page ───── */
+/* single page */
 section {
     display: none !important;
 }
@@ -30,7 +34,10 @@ section:not([hidden]) {
     display: flex !important;
 }
 
-/* ───── sidebar ───── */
+/* ═══════════════════════════════════════ */
+/* ───── SIDEBAR ───── */
+/* ═══════════════════════════════════════ */
+
 .navbar {
     width: 260px;
     min-height: 100vh;
@@ -98,7 +105,10 @@ section:not([hidden]) {
     background: #4b5563;
 }
 
-/* ───── section inicial ───── */
+/* ═══════════════════════════════════════ */
+/* ───── SEÇÃO INICIAL ───── */
+/* ═══════════════════════════════════════ */
+
 #inicial {
     min-height: 100vh;
     width: 100%;
@@ -166,7 +176,10 @@ section:not([hidden]) {
     margin-top: 2rem;
 }
 
-/* ───── section clientes ───── */
+/* ═══════════════════════════════════════ */
+/* ───── SEÇÃO CLIENTES ───── */
+/* ═══════════════════════════════════════ */
+
 .clientes-menu {
     display: flex;
     gap: 1rem;
@@ -194,6 +207,11 @@ section:not([hidden]) {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 15px;
     padding: 20px;
+}
+
+#clientesConteudo .cliente-card {
+    max-height: 220px;
+    max-width: 200px;
 }
 
 .cliente-card {
@@ -314,7 +332,10 @@ section:not([hidden]) {
     background: #4b5563;
 }
 
-/* MODAL CADASTRO */
+/* ═══════════════════════════════════════ */
+/* ───── MODAIS (cliente e nota) ───── */
+/* ═══════════════════════════════════════ */
+
 #modal-containerNota,
 #modal-container {
     display: none;
@@ -343,6 +364,18 @@ section:not([hidden]) {
     }
 }
 
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .modal-card {
     width: min(500px, 95%);
     height: auto;
@@ -355,18 +388,6 @@ section:not([hidden]) {
     overflow-y: auto;
     position: relative;
     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .modal-card h2 {
@@ -606,6 +627,10 @@ section:not([hidden]) {
     margin-bottom: 12px;
 }
 
+/* ═══════════════════════════════════════ */
+/* ───── AUTOCOMPLETE (cliente na nota) ───── */
+/* ═══════════════════════════════════════ */
+
 .autocomplete {
     position: relative;
     width: 100%;
@@ -644,7 +669,10 @@ section:not([hidden]) {
     padding-left: 20px;
 }
 
+/* ═══════════════════════════════════════ */
 /* ───── SEÇÃO ALFABÉTICA DE NOTAS ───── */
+/* ═══════════════════════════════════════ */
+
 #notas {
     padding: 20px;
     width: 100%;
@@ -759,6 +787,25 @@ section:not([hidden]) {
     border-radius: 8px;
 }
 
+.loading-txt,
+.sem-notas-txt,
+.erro-txt {
+    grid-column: 1 / -1;
+    color: #9ca3af;
+    font-size: 14px;
+    font-style: italic;
+    padding: 15px;
+    text-align: center;
+}
+
+.erro-txt {
+    color: #ef4444;
+}
+
+/* ═══════════════════════════════════════ */
+/* ───── CARDS DE NOTA FISCAL ───── */
+/* ═══════════════════════════════════════ */
+
 .nota-fiscal-card {
     background: #1f2937;
     border-radius: 8px;
@@ -798,6 +845,10 @@ section:not([hidden]) {
     line-height: 1.4;
 }
 
+.nota-card-body strong {
+    color: #d1d5db;
+}
+
 .nota-fiscal-card-ajuste {
     display: flex;
     flex-direction: column;
@@ -820,15 +871,6 @@ section:not([hidden]) {
     font-size: 14px;
 }
 
-.nota-card-body strong {
-    color: #d1d5db;
-}
-
-#clientesConteudo .cliente-card {
-    max-height: 220px;
-    max-width: 200px;
-}
-
 .nota-image {
     width: 100%;
     height: 140px;
@@ -849,8 +891,6 @@ section:not([hidden]) {
     display: block;
 }
 
-
-
 .btn-marcar-pago {
     width: 100%;
     margin-top: auto;
@@ -870,6 +910,11 @@ section:not([hidden]) {
 }
 
 /* Destaque visual quando a nota já está paga */
+.nota-paga {
+    background-color: #16a34a;
+    border-color: #15803d;
+}
+
 .nota-paga .btn-marcar-pago {
     background: #10b981;
     color: white;
@@ -879,24 +924,211 @@ section:not([hidden]) {
     background: #059669;
 }
 
-.nota-paga {
-    background-color: #16a34a;
-    border-color: #15803d;
+/* ═══════════════════════════════════════ */
+/* ───── SELEÇÃO E AGRUPAMENTO DE NOTAS ───── */
+/* ═══════════════════════════════════════ */
+
+.selecionada {
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
 }
 
-.loading-txt,
-.sem-notas-txt,
-.erro-txt {
+.barra-selecao-notas {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1f2937;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.acoes-selecao button {
+    margin-left: 8px;
+}
+
+/* Card de grupo: colapsado ocupa uma célula normal do grid,
+   igual a um card de nota (mesma altura da linha). Só vira
+   "linha inteira" quando aberto. */
+.grupo-notas-card {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.grupo-notas-card:hover {
+    border-color: #3b82f6;
+}
+
+.grupo-notas-card.aberto {
     grid-column: 1 / -1;
-    color: #9ca3af;
-    font-size: 14px;
-    font-style: italic;
-    padding: 15px;
-    text-align: center;
+    height: auto;
+    cursor: default;
 }
 
-.erro-txt {
+.grupo-notas-card.aberto:hover {
+    border-color: #374151;
+}
+
+.grupo-notas-topo {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 14px 14px 8px;
+}
+
+.grupo-notas-icone {
+    font-size: 18px;
+    line-height: 1.3;
+    flex-shrink: 0;
+}
+
+.grupo-notas-titulo-texto {
+    margin: 0;
+    font-size: 15px;
+    color: #f9fafb;
+    line-height: 1.3;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.grupo-notas-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 14px;
+}
+
+.grupo-notas-info-linha {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.grupo-notas-info-label {
+    font-size: 11px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.grupo-notas-info-valor {
+    font-size: 13px;
+    color: #e5e7eb;
+}
+
+.grupo-notas-valor-destaque {
+    font-size: 15px;
+    font-weight: bold;
+    color: #f87171;
+}
+
+.grupo-notas-valor-total-destaque {
+    font-size: 15px;
+    font-weight: bold;
+    color: #e5e7eb;
+}
+
+.grupo-notas-aviso-pago {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 4px;
+}
+
+.grupo-notas-aviso-pago span {
+    font-size: 12px;
+    color: #6ee7b7;
+}
+
+.btn-excluir-grupo-pago {
+    align-self: flex-start;
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #f87171;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-excluir-grupo-pago:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.grupo-notas-rodape {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-top: 1px solid #374151;
+}
+
+.btn-editar-grupo {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: #9ca3af;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.btn-editar-grupo:hover {
+    background: #374151;
+    color: #e5e7eb;
+}
+
+.btn-excluir-grupo {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: #9ca3af;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: 0.2s;
+    display: none; /* só aparece quando o grupo está aberto */
+}
+
+.grupo-notas-card.aberto .btn-excluir-grupo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-excluir-grupo:hover {
+    background: #374151;
     color: #ef4444;
+}
+
+.seta-status-grupo {
+    color: #60a5fa;
+    font-size: 13px;
+    margin-left: auto;
+}
+
+.grupo-notas-corpo {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
+    gap: 15px;
+    padding: 0 14px 14px;
 }
 
 /* ═══════════════════════════════════════ */
@@ -972,11 +1204,6 @@ section:not([hidden]) {
         width: min(96vw, 100%);
         padding: 20px;
     }
-
-    .nota-paga {
-        background-color: #16a34a;
-        border-color: #15803d;
-    }
 }
 
 @media (max-width: 768px) {
@@ -1048,7 +1275,6 @@ section:not([hidden]) {
         align-items: stretch;
     }
 
-    /* Container do botão de ação */
     .toolbar-unir {
         padding: 10px;
         background: #1f2937;
@@ -1057,7 +1283,6 @@ section:not([hidden]) {
         text-align: right;
     }
 
-    /* ───── NOTA IMAGE ENCAIXADA ───── */
     .nota-image {
         width: 100%;
         margin: 8px 0 0 0;
@@ -1076,11 +1301,6 @@ section:not([hidden]) {
         max-height: 250px;
         object-fit: contain;
         display: block;
-    }
-
-    .nota-paga {
-        background-color: #16a34a;
-        border-color: #15803d;
     }
 }
 
@@ -1113,7 +1333,6 @@ section:not([hidden]) {
         padding: 10px 0;
     }
 
-    /* Responsividade específica para notas em mobile */
     .notas-alfabetico-container {
         gap: 12px;
     }
@@ -1183,46 +1402,4 @@ section:not([hidden]) {
         font-size: 11px;
         padding: 2px 6px;
     }
-
-    .nota-paga {
-        background-color: #16a34a;
-        border-color: #15803d;
-    }
-}
-
-.selecionada {
-    outline: 2px solid #3b82f6;
-    outline-offset: -2px;
-}
-
-.barra-selecao-notas {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #1f2937;
-    color: #fff;
-    padding: 10px 16px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-}
-
-.acoes-selecao button {
-    margin-left: 8px;
-}
-
-.grupo-notas-titulo {
-    cursor: pointer;
-}
-
-.grupo-notas-acoes {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.btn-excluir-grupo {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
 }

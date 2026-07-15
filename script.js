@@ -604,44 +604,52 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Calcula data mais antiga, mais recente, valor total e valor não pago de um conjunto de notas
+    function calcularInfoGrupo(notasDoGrupo) {
+        let dataMaisAntiga = null;
+        let dataMaisRecente = null;
+        let totalNaoPago = 0;
+        let totalGrupo = 0;
+
+        notasDoGrupo.forEach(nota => {
+            if (nota.dataEmissao) {
+                const data = new Date(nota.dataEmissao);
+                if (!isNaN(data)) {
+                    if (!dataMaisAntiga || data < dataMaisAntiga) dataMaisAntiga = data;
+                    if (!dataMaisRecente || data > dataMaisRecente) dataMaisRecente = data;
+                }
+            }
+            totalGrupo += parseFloat(nota.valor || 0);
+            if (!nota.pago) {
+                totalNaoPago += parseFloat(nota.valor || 0);
+            }
+        });
+
+        return { dataMaisAntiga, dataMaisRecente, totalNaoPago, totalGrupo };
+    }
+
+    function formatarDataCurta(data) {
+        return data ? data.toLocaleDateString('pt-BR') : "—";
+    }
+
     // Monta o card visual de um grupo já existente (vindo do backend)
+    // Começa do tamanho de um card normal (colapsado); ao clicar, expande
+    // ocupando a linha inteira e mostra a grade de notas dentro.
+    // notasDoGrupo: array com os objetos de nota (não só os ids), usado pra calcular os totais
     // Retorna { cardGrupo, corpoGrupo } para o chamador poder inserir os cards de nota dentro
-    function criarCardGrupo(grupo, containerAlvo, clienteAlvo) {
+    function criarCardGrupo(grupo, containerAlvo, clienteAlvo, notasDoGrupo) {
         const cardGrupo = document.createElement("div");
         cardGrupo.classList.add("grupo-notas-card");
         cardGrupo.dataset.grupoId = grupo._id;
 
-        const cabecalhoGrupo = document.createElement("div");
-        cabecalhoGrupo.classList.add("grupo-notas-cabecalho");
-        cabecalhoGrupo.innerHTML = `
-            <div class="grupo-notas-titulo">
-                <h3>${grupo.observacao ? grupo.observacao : "Grupo de Notas"}</h3>
-            </div>
-            <div class="grupo-notas-acoes">
-                <button class="btn-excluir-grupo" title="Excluir grupo">🗑️</button>
-                <span class="seta-status-grupo">▲</span>
-            </div>
-        `;
+        const { dataMaisAntiga, dataMaisRecente, totalNaoPago, totalGrupo } = calcularInfoGrupo(notasDoGrupo);
+        const totalFormatado = totalNaoPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const totalGrupoFormatado = totalGrupo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const todasPagas = notasDoGrupo.length > 0 && totalNaoPago === 0;
 
-        const corpoGrupo = document.createElement("div");
-        corpoGrupo.classList.add("grupo-notas-corpo");
-
-        cabecalhoGrupo.querySelector(".grupo-notas-titulo").addEventListener("click", () => {
-            alternarGrupo();
-        });
-        cabecalhoGrupo.querySelector(".seta-status-grupo").addEventListener("click", () => {
-            alternarGrupo();
-        });
-
-        function alternarGrupo() {
-            const estaAberto = corpoGrupo.style.display !== "none";
-            corpoGrupo.style.display = estaAberto ? "none" : "grid";
-            cabecalhoGrupo.querySelector(".seta-status-grupo").textContent = estaAberto ? "▼" : "▲";
-        }
-
-        cabecalhoGrupo.querySelector(".btn-excluir-grupo").addEventListener("click", async (e) => {
-            e.stopPropagation();
-
+        // Função compartilhada de exclusão (usada tanto pelo botão do rodapé
+        // quanto pelo aviso que aparece quando todas as notas já estão pagas)
+        async function excluirGrupo() {
             const confirmar = confirm("Excluir este grupo? As notas dentro dele também serão marcadas como excluídas.");
             if (!confirmar) return;
 
@@ -660,9 +668,94 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error(erro);
                 alert("Erro ao excluir grupo.");
             }
+        }
+
+        cardGrupo.innerHTML = `
+            <div class="grupo-notas-topo">
+                <span class="grupo-notas-icone">📦</span>
+                <h3 class="grupo-notas-titulo-texto">Período: ${formatarDataCurta(dataMaisAntiga)} – ${formatarDataCurta(dataMaisRecente)}</h3>
+            </div>
+            <div class="grupo-notas-info">
+                <div class="grupo-notas-info-linha">
+                    <span class="grupo-notas-info-label">Total do período</span>
+                    <span class="grupo-notas-info-valor grupo-notas-valor-total-destaque">${totalGrupoFormatado}</span>
+                    <span class="grupo-notas-info-label">Em aberto</span>
+                    <span class="grupo-notas-info-valor grupo-notas-valor-destaque">${totalFormatado}</span>
+                </div>
+                <div class="grupo-notas-info-linha">
+                    <span class="grupo-notas-info-label">Notas</span>
+                    <span class="grupo-notas-info-valor">${notasDoGrupo.length}</span>
+                </div>
+                <div class="grupo-notas-info-linha">
+                    <span class="grupo-notas-info-label">Observação</span>
+                    <span class="grupo-notas-info-valor">${grupo.observacao || "Nenhuma observação"}</span>
+                </div>
+                ${todasPagas ? `
+                <div class="grupo-notas-aviso-pago">
+                    <span>✅ Todas as notas deste grupo estão pagas.</span>
+                    <button class="btn-excluir-grupo-pago" type="button">Excluir grupo e notas</button>
+                </div>
+                ` : ""}
+            </div>
+            <div class="grupo-notas-rodape">
+                <button class="btn-editar-grupo" title="Editar observação">✏️ Editar</button>
+                <button class="btn-excluir-grupo" title="Excluir grupo">🗑️ Excluir</button>
+                <span class="seta-status-grupo">▼</span>
+            </div>
+        `;
+
+        const corpoGrupo = document.createElement("div");
+        corpoGrupo.classList.add("grupo-notas-corpo");
+        corpoGrupo.style.display = "none";
+
+        cardGrupo.addEventListener("click", (e) => {
+            if (e.target.closest(".btn-excluir-grupo") || e.target.closest(".btn-editar-grupo") || e.target.closest(".btn-excluir-grupo-pago")) return;
+            alternarGrupo();
         });
 
-        cardGrupo.appendChild(cabecalhoGrupo);
+        function alternarGrupo() {
+            const estaAberto = cardGrupo.classList.toggle("aberto");
+            corpoGrupo.style.display = estaAberto ? "grid" : "none";
+            cardGrupo.querySelector(".seta-status-grupo").textContent = estaAberto ? "▲" : "▼";
+        }
+
+        cardGrupo.querySelector(".btn-editar-grupo").addEventListener("click", async (e) => {
+            e.stopPropagation();
+
+            const novaObservacao = prompt("Editar observação do grupo:", grupo.observacao || "");
+            if (novaObservacao === null) return; // cancelou
+
+            try {
+                const resposta = await fetch(`https://sos-alimentos-servidor.onrender.com/api/grupos/${grupo._id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ observacao: novaObservacao })
+                });
+
+                if (!resposta.ok) throw new Error();
+
+                await carregarNotasDoCliente(clienteAlvo, containerAlvo);
+
+            } catch (erro) {
+                console.error(erro);
+                alert("Erro ao editar grupo.");
+            }
+        });
+
+        cardGrupo.querySelector(".btn-excluir-grupo").addEventListener("click", async (e) => {
+            e.stopPropagation();
+            await excluirGrupo();
+        });
+
+        // Botão que só existe quando todas as notas do grupo já estão pagas
+        const btnExcluirPago = cardGrupo.querySelector(".btn-excluir-grupo-pago");
+        if (btnExcluirPago) {
+            btnExcluirPago.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                await excluirGrupo();
+            });
+        }
+
         cardGrupo.appendChild(corpoGrupo);
 
         return { cardGrupo, corpoGrupo };
@@ -693,6 +786,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         btnPago.textContent = nota.pago ? "Desmarcar como Pago" : "Marcar como Pago";
                         cardNotaItem.classList.toggle("nota-paga", nota.pago);
+
+                        // Recarrega a listagem pra recalcular os totais/avisos do grupo,
+                        // caso esta nota pertença a algum grupo
+                        return carregarNotasDoCliente(clienteAlvo, containerAlvo);
                     })
                     .catch((erro) => {
                         console.error(erro);
@@ -751,6 +848,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 cardNotaItem.addEventListener("click", () => {
+                    // Notas que já pertencem a um grupo não podem ser selecionadas pra
+                    // formar outro grupo (evita mover a nota de um grupo pro outro por engano)
+                    if (cardNotaItem.closest(".grupo-notas-card")) return;
+
                     if (!modoSelecao) {
                         modoSelecao = true;
                         containerSelecaoAtivo = containerAlvo;
@@ -802,9 +903,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Cria todos os cards de nota primeiro, indexados por id
             const notaCardMap = new Map();
+            const notaPorId = new Map();
             notasDoCliente.forEach((nota, index) => {
                 const cardNotaItem = criarCardNotaItem(nota, index);
                 notaCardMap.set(String(nota._id), cardNotaItem);
+                notaPorId.set(String(nota._id), nota);
             });
 
             // Marca quais notas já pertencem a algum grupo
@@ -815,7 +918,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Renderiza os grupos primeiro, movendo os cards de nota correspondentes pra dentro
             grupos.forEach(grupo => {
-                const { cardGrupo, corpoGrupo } = criarCardGrupo(grupo, containerAlvo, clienteAlvo);
+                const notasDoGrupo = (grupo.notasId || [])
+                    .map(id => notaPorId.get(String(id)))
+                    .filter(Boolean);
+
+                const { cardGrupo, corpoGrupo } = criarCardGrupo(grupo, containerAlvo, clienteAlvo, notasDoGrupo);
 
                 (grupo.notasId || []).forEach(id => {
                     const card = notaCardMap.get(String(id));

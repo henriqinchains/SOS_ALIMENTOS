@@ -1104,7 +1104,8 @@ section:not([hidden]) {
     padding: 4px 6px;
     border-radius: 6px;
     transition: 0.2s;
-    display: none; /* só aparece quando o grupo está aberto */
+    display: none;
+    /* só aparece quando o grupo está aberto */
 }
 
 .grupo-notas-card.aberto .btn-excluir-grupo {

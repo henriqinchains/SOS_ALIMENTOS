@@ -37,6 +37,7 @@ let modoSelecao = false;
 const notasSelecionadas = new Map(); // nota._id -> { nota, elemento }
 let containerSelecaoAtivo = null;
 let clienteSelecaoAtivo = null;
+let gruposSelecaoAtivo = []; // grupos existentes do cliente que está com seleção ativa
 let barraSelecao = null;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -532,6 +533,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="contador-selecao">1 nota selecionada</span>
             <div class="acoes-selecao">
                 <button class="btn-agrupar">Agrupar Notas</button>
+                ${gruposSelecaoAtivo.length > 0 ? `<button class="btn-adicionar-grupo">Adicionar a Grupo</button>` : ""}
                 <button class="btn-cancelar-selecao">Cancelar</button>
             </div>
         `;
@@ -541,6 +543,13 @@ document.addEventListener("DOMContentLoaded", () => {
         barraSelecao.querySelector(".btn-agrupar").addEventListener("click", () => {
             criarGrupoDeNotas(containerAlvo);
         });
+
+        const btnAdicionarGrupo = barraSelecao.querySelector(".btn-adicionar-grupo");
+        if (btnAdicionarGrupo) {
+            btnAdicionarGrupo.addEventListener("click", () => {
+                adicionarNotasAGrupoExistente(containerAlvo);
+            });
+        }
 
         barraSelecao.querySelector(".btn-cancelar-selecao").addEventListener("click", () => {
             cancelarModoSelecao();
@@ -567,6 +576,62 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         containerSelecaoAtivo = null;
         clienteSelecaoAtivo = null;
+        gruposSelecaoAtivo = [];
+    }
+
+    // Adiciona as notas selecionadas a um grupo já existente do cliente
+    // (faz merge com as notas que já estavam no grupo, sem duplicar)
+    async function adicionarNotasAGrupoExistente(containerAlvo) {
+        if (notasSelecionadas.size === 0) return;
+        if (!clienteSelecaoAtivo) return;
+        if (gruposSelecaoAtivo.length === 0) return;
+
+        let grupoEscolhido = null;
+
+        if (gruposSelecaoAtivo.length === 1) {
+            grupoEscolhido = gruposSelecaoAtivo[0];
+            const confirmar = confirm(`Adicionar ${notasSelecionadas.size} nota(s) ao grupo "${grupoEscolhido.observacao || "Grupo de Notas"}"?`);
+            if (!confirmar) return;
+        } else {
+            const listaTexto = gruposSelecaoAtivo
+                .map((g, i) => `${i + 1}) ${g.observacao || "Grupo de Notas"}`)
+                .join("\n");
+
+            const escolha = prompt(`Escolha o grupo pelo número:\n${listaTexto}`, "1");
+            if (escolha === null) return; // cancelou
+
+            const indice = parseInt(escolha, 10) - 1;
+            if (isNaN(indice) || indice < 0 || indice >= gruposSelecaoAtivo.length) {
+                alert("Opção inválida.");
+                return;
+            }
+
+            grupoEscolhido = gruposSelecaoAtivo[indice];
+        }
+
+        const notasIdExistentes = (grupoEscolhido.notasId || []).map(id => String(id));
+        const notasIdNovas = Array.from(notasSelecionadas.keys());
+        const notasIdFinal = Array.from(new Set([...notasIdExistentes, ...notasIdNovas]));
+
+        const clienteAlvo = clienteSelecaoAtivo;
+
+        try {
+            const resposta = await fetch(`https://sos-alimentos-servidor.onrender.com/api/grupos/${grupoEscolhido._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ notasId: notasIdFinal })
+            });
+
+            if (!resposta.ok) throw new Error();
+
+            cancelarModoSelecao();
+
+            await carregarNotasDoCliente(clienteAlvo, containerAlvo);
+
+        } catch (erro) {
+            console.error(erro);
+            alert("Erro ao adicionar notas ao grupo.");
+        }
     }
 
     // Cria o grupo de fato no backend (persistido) e recarrega a listagem do cliente
@@ -710,6 +775,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         cardGrupo.addEventListener("click", (e) => {
             if (e.target.closest(".btn-excluir-grupo") || e.target.closest(".btn-editar-grupo") || e.target.closest(".btn-excluir-grupo-pago")) return;
+            if (e.target.closest(".grupo-notas-corpo")) return; // clique numa nota dentro do grupo não deve fechar o grupo
             alternarGrupo();
         });
 
@@ -847,15 +913,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     marcarComoPago(nota, cardNotaItem, btnPago);
                 });
 
-                cardNotaItem.addEventListener("click", () => {
+                cardNotaItem.addEventListener("click", (e) => {
                     // Notas que já pertencem a um grupo não podem ser selecionadas pra
                     // formar outro grupo (evita mover a nota de um grupo pro outro por engano)
-                    if (cardNotaItem.closest(".grupo-notas-card")) return;
+                    // e o clique não deve borbulhar pro card do grupo (senão ele fecha/abre sem querer)
+                    if (cardNotaItem.closest(".grupo-notas-card")) {
+                        e.stopPropagation();
+                        return;
+                    }
 
                     if (!modoSelecao) {
                         modoSelecao = true;
                         containerSelecaoAtivo = containerAlvo;
                         clienteSelecaoAtivo = clienteAlvo;
+                        gruposSelecaoAtivo = grupos; // grupos já existentes deste cliente, pra oferecer "Adicionar a Grupo"
                         criarBarraSelecao(containerAlvo);
                     }
 

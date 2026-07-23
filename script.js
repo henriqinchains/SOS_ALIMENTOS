@@ -43,6 +43,51 @@ let origemSelecao = null; // 'solta' (notas soltas) ou 'grupo' (notas dentro de 
 let grupoOrigemSelecaoId = null; // qual grupo, quando origemSelecao === 'grupo'
 let barraSelecao = null;
 
+let loggedUser = sessionStorage.getItem("cache_usuario") || "";
+let userRole = sessionStorage.getItem("cache_cargo") || "user";
+
+
+async function verificarSessao() {
+    try {
+        const resposta = await fetch("https://sos-alimentos-servidor.onrender.com/api/auth/me",
+            {
+                method: "GET",
+                credentials: "include",
+            },
+        );
+
+        if (!resposta.ok) {
+            sessionStorage.clear();
+            window.location.href = "./pages/login/login.html";
+            return false;
+        }
+
+        const dadosUsuario = await resposta.json();
+
+        loggedUser = dadosUsuario.nome;
+        userRole = dadosUsuario.cargo || "user";
+
+        sessionStorage.setItem("cache_usuario", loggedUser);
+        sessionStorage.setItem("cache_cargo", userRole);
+
+        inicializarInterface(dadosUsuario);
+        return true;
+    } catch (erro) {
+        console.error("Erro ao verificar sessão segura:", erro);
+        sessionStorage.clear();
+        window.location.href = "./pages/login/login.html";
+        return false;
+    }
+}
+
+async function inicializarInterface(usuario) {
+    const loggedUserEl = document.getElementById("loggedUser");
+    const inputUsuario = document.getElementById("nome");
+
+    if (loggedUserEl) loggedUserEl.textContent = usuario.nome;
+    if (inputUsuario) inputUsuario.value = usuario.nome;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
     if (btnAbrirModalNota) {
@@ -137,6 +182,8 @@ document.addEventListener("DOMContentLoaded", () => {
             fecharModalNota();
         }
     });
+
+
 
     // Formulário Cliente
     if (formNovoCliente) {

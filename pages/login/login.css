@@ -177,6 +177,13 @@ input:focus-visible {
     outline-offset: 2px;
 }
 
+input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+
 button#login-button {
     margin-top: 26px;
     font-family: var(--fonte-texto);

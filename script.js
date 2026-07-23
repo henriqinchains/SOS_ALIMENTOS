@@ -58,7 +58,7 @@ async function verificarSessao() {
 
         if (!resposta.ok) {
             sessionStorage.clear();
-            window.location.href = "./pages/login/login.html";
+            window.location.href = "../pages/login/login.html";
             return false;
         }
 
@@ -88,7 +88,12 @@ async function inicializarInterface(usuario) {
     if (inputUsuario) inputUsuario.value = usuario.nome;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+
+    // CORREÇÃO: sem esta chamada, a sessão nunca era checada e o usuário
+    // nunca era redirecionado pro login mesmo sem estar autenticado.
+    const sessaoValida = await verificarSessao();
+    if (!sessaoValida) return; // já redirecionou pro login, não continua montando a página
 
     if (btnAbrirModalNota) {
         btnAbrirModalNota.addEventListener("click", () => {
@@ -878,7 +883,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             await Promise.all(
                 notasIdExcluir.map(id =>
-                    put(`https://sos-alimentos-servidor.onrender.com/api/notas/${id}`, { method: "PUT", body: JSON.stringify({ deletado: true }) })
+                    fetch(`https://sos-alimentos-servidor.onrender.com/api/notas/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ deletado: true }) })
                 )
             );
 
